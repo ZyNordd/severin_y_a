@@ -7,6 +7,11 @@
 #include <fstream>
 #include <set>
 #include <unordered_set>
+#include <io.h> 
+#include <locale>
+#include <codecvt>
+#include <clocale>
+#include <fcntl.h> 
 
 std::vector<int> N{ 16, 160, 1600, 3200, 6400,  12800, 16000,
 19200, 22400, 25600, 28800, 32000, 35200, 38400, 41600, 44800, 48000,
@@ -35,7 +40,7 @@ void f1_calculations(int& n, std::vector<int>& data) {
     for (int i = 0; i < n; i += 1) {
         as[data[i]] = n - i - 1;
     }
-    std::cout << std::distance(as.begin(), std::max_element(as.begin(), as.end())) << "\n";
+    int a = std::distance(as.begin(), std::max_element(as.begin(), as.end()));
 }
 
 void f2_calculations(int& n, std::vector<int>& data) {
@@ -48,7 +53,7 @@ void f2_calculations(int& n, std::vector<int>& data) {
             unique.insert(idx_unique);
         }
     }
-   std::cout << idx_unique;
+   int a =  idx_unique;
 }
 
 double timer_read (int& n, std::vector<int>& input, std::ifstream& fin, void (*func)(int& a, std::vector<int>& b, std::ifstream& c))    {
@@ -77,7 +82,7 @@ void generate_data(std::string f, int n) {
 }
 
 int main() {
-
+    setlocale(LC_CTYPE, "Russian");
     std::vector<double> t_calc1;
     std::vector<double> t_calc2;
     std::vector<double> t_read1;
@@ -85,13 +90,13 @@ int main() {
 
     for (int n : N) {
 
-        generate_data("data1.txt", n);
+        generate_data("data.txt", n);
 
         std::ifstream fin1;
-        fin1.open("data1.txt");
+        fin1.open("data.txt");
 
         std::ifstream fin2;
-        fin2.open("data1.txt");
+        fin2.open("data.txt");
 
         std::ios_base::sync_with_stdio(0);
         fin1.tie(nullptr);
@@ -124,19 +129,22 @@ int main() {
 
     std::vector<double> x = matplot::linspace(16, 200000,64);
 
-    matplot::plot(x, t_calc1, "--x", x, t_calc2, "--");
+    matplot::plot(x, t_calc1, x, t_calc2, "--");
     matplot::xlabel("n");
     matplot::ylabel("t_{calculations}");
-    matplot::save("img/tc(n).png");
+    matplot::save("img/tcalc.png");
 
     matplot::plot(x, t_read1, x, t_read2, "--"); 
     matplot::xlabel("n");
     matplot::ylabel("t_{reading}");
-    matplot::save("img/tr(n).png");
+    matplot::save("img/tread.png");
 
-    matplot::plot(x, t_calc1, "--x");
-    matplot::save("img/t1c(n).png");
+    std::ofstream report;
 
-    matplot::plot(x, t_calc2, "--x");
-    matplot::save("img/t2c(n).png");
+    report.open("report.tex");      
+    report << "\\documentclass[12pt]{article} \n\\usepackage[utf8x]{inputenc} \n\\usepackage[english, russian]{babel} \n\\usepackage{cmap} \n\\usepackage{graphicx} \n\\usepackage{grffile} \n\\graphicspath{{img/}} \n\\title{Отчёт по столовым} \n\\author{Северин Ян БПМ - 21 - 3} \n\\begin{document} \n\\maketitle \n \\textbf{My Github:} \\href{https://github.com/ZyNordd/severin\\_y\\_a}\n\\section{Логика программы} Программа генерирует 2 графика, на каждом из которых 2 кривые, основанные за замерах с помощью библиотеки chrono.Для начала я составил 4 функции(f\\_reading и f\\_calculations), основанные на двух исходных решениях.Затем 2 функции для замера времени чтения и для замера расчетов.Ну и последняя функция, которая генерирует данные для программ - generate\\_data, которая записывает в файл data.txt n чисел в диапозоне от 1 до n, генерируя их случайно.В main запускаются тесты с различным количеством входных данных, происходят все замеры и строятся графики. \n\\section{Графики и их анализ} \n\\begin{ center } \n\\includegraphics[width = 400pt]{ tread.png } \n\\includegraphics[width = 400pt]{ tcalc.png } \n\\end{ center } \n\\section{Анализ графиков} Как видно из первого графика, время считывания у обеих программ одинаковы, что очевидно.        А вот второй график явно показывает, что первое решение(голубой цвет) работает гораздно быстрее, чем второе.Пики на графиках связаны с генерацией данных и с особенностями работы алгоритмов.  \n\\section{Вывод} Первое решение быстрее работает, чем второе, а еще и не требует использования с++20 и unordered\\_set. \n\\end{document} \n";
+
+    report.close();
+
+    return 0;
 }
