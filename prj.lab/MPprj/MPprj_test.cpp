@@ -14,12 +14,12 @@ std::vector<int> N{ 16, 160, 1600, 3200, 6400,  12800, 16000,
 83200, 86400, 89600, 92800, 96000, 99200, 102400, 105600, 108800, 112000,
 115200, 118400, 121600, 124800, 128000, 131200, 134400, 137600, 140800,
 144000, 147200, 150400, 153600, 156800, 160000, 163200, 166400, 169600,
-172800, 176000, 179200, 182400, 185600, 188800, 192000, 195200, 198400 };
+172800, 176000, 179200, 182400, 185600, 188800, 192000, 195200, 198400}; 
 
-void f1_reading(int& n, std::vector<int>& input, std::ifstream& fin) {
+void f1_reading(int& n, std::vector<int>& data, std::ifstream& fin) {
     fin >> n;
     for (int i = 0; i < n; i += 1) {
-        fin >> input[i];
+        fin >> data[i];
     }
 }
 
@@ -30,10 +30,10 @@ void f2_reading(int& n, std::vector<int>& data, std::ifstream& fin) {
     }
 }
 
-void f1_calculations(int& n, std::vector<int>& input) {
+void f1_calculations(int& n, std::vector<int>& data) {
     std::vector<int> as(200001, -1);
     for (int i = 0; i < n; i += 1) {
-        as[input[i]] = n - i - 1;
+        as[data[i]] = n - i - 1;
     }
     std::cout << std::distance(as.begin(), std::max_element(as.begin(), as.end())) << "\n";
 }
@@ -43,7 +43,7 @@ void f2_calculations(int& n, std::vector<int>& data) {
     unique.reserve(200000);
     int idx_unique = n;
     for (int i = n - 1; 0 <= i; i -= 1) {
-        if (unique.find(data[i]) != unique.end()) {
+        if (!unique.contains(data[i])) {
             idx_unique = data[i];
             unique.insert(idx_unique);
         }
@@ -78,9 +78,7 @@ void generate_data(std::string f, int n) {
 
 int main() {
 
-    std::vector<double> tn_calc1;
     std::vector<double> t_calc1;
-    std::vector<double> tn_calc2;
     std::vector<double> t_calc2;
     std::vector<double> t_read1;
     std::vector<double> t_read2;
@@ -88,59 +86,57 @@ int main() {
     for (int n : N) {
 
         generate_data("data1.txt", n);
+
         std::ifstream fin1;
         fin1.open("data1.txt");
-        if (!(fin1.is_open())) {
-            std::cout << "FILE IS NOT OPEN\n";
-            exit(-1);
-        }
+
+        std::ifstream fin2;
+        fin2.open("data1.txt");
 
         std::ios_base::sync_with_stdio(0);
         fin1.tie(nullptr);
 
         std::vector<int> input1(200001, -1);
-        std::vector<int> input2(200001, -1);
-
         double read1 = timer_read(n, input1, fin1, f1_reading);
-        double read2 = timer_read(n, input2, fin1, f2_reading);
 
         fin1.close();
+
+        std::ios_base::sync_with_stdio(0);
+        fin2.tie(nullptr);
+
+        std::vector<int> input2(200001, -1);
+        double read2 = timer_read(n, input2, fin2, f2_reading);
+
+        fin2.close();
 
         t_read1.push_back(read1);
         t_read2.push_back(read2);
 
-        double calc2 = timer_calc(n, input2, f2_calculations);
+        
         double calc1 = timer_calc(n, input1, f1_calculations);
+        double calc2 = timer_calc(n, input2, f2_calculations);
        
 
-        tn_calc1.push_back(calc1 * 100000 / n);
         t_calc1.push_back(calc1);
-
-        tn_calc2.push_back(calc2 * 100000 / n);
         t_calc2.push_back(calc2);
 
     }
 
-    std::vector<double> x = matplot::linspace(5000, 200000,100);
-    matplot::plot(x, tn_calc1, x, tn_calc2,  "--");
-    matplot::xlabel("n");
-    matplot::ylabel("t_{calculations}/n");
-    //matplot::save("img/tcn(n).svg");
-    matplot::save("img/tcn(n).gif");
-    matplot::save("img/tcn(n).png");
+    std::vector<double> x = matplot::linspace(16, 200000,64);
 
-    matplot::plot(x, t_calc1, x, t_calc2, "--");
+    matplot::plot(x, t_calc1, "--x", x, t_calc2, "--");
     matplot::xlabel("n");
     matplot::ylabel("t_{calculations}");
-    //matplot::save("img/tc(n).svg");
-    matplot::save("img/tc(n).gif");
     matplot::save("img/tc(n).png");
 
-    matplot::plot(x, t_read1, x, t_read2, "--");
+    matplot::plot(x, t_read1, x, t_read2, "--"); 
     matplot::xlabel("n");
     matplot::ylabel("t_{reading}");
-    //matplot::save("img/tr(n).svg");
-    matplot::save("img/tr(n).gif");
     matplot::save("img/tr(n).png");
-    
+
+    matplot::plot(x, t_calc1, "--x");
+    matplot::save("img/t1c(n).png");
+
+    matplot::plot(x, t_calc2, "--x");
+    matplot::save("img/t2c(n).png");
 }
